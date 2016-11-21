@@ -46,7 +46,6 @@ OBJECTS=$(addprefix $(BUILD)/,$(GEN_OBJ) $(C_OBJ) $(S_OBJ))
 .PHONY: all clean test generated images patch
 
 all: main.s $(BINARY) $(call rwildcard,patches,*.s)
-	sh battle_backgrounds
 	@echo -e "\e[1;32mCreating ROM\e[0m"
 	$(ARMIPS) main.s
 
