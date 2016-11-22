@@ -4,7 +4,7 @@ import os
 files = []
 files = os.listdir('.' + "/../images/portraits/")
 
-grit_args = "-gB 4 -pe16 -gu8 -pu8 -ftc\n"
+grit_args = "-gB4 -gzl -gu8 -pe16 -pu8 -ftc\n"
 
 portraits_headergaurd_top = ("#ifndef PORTRAITS_H_\n#define PORTRAITS_H_\n\n" +
                              "#include <pokeagb/pokeagb.h>\n")
