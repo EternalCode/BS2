@@ -49,10 +49,6 @@ all: main.s $(BINARY) $(call rwildcard,patches,*.s)
 	@echo -e "\e[1;32mCreating ROM\e[0m"
 	$(ARMIPS) main.s
 
-patch: all
-	deps/patch/patch ups roms/BPRE0.gba build/multi.gba build/patch.ups
-	deps/patch/patch ppf roms/BPRE0.gba build/multi.gba build/patch.ppf
-
 clean:
 	rm -rf build
 	rm -rf generated
@@ -82,6 +78,8 @@ generated/images/%.c: images/%.png images/%.grit
 	@mkdir -p $(@D)
 	@grit $< -o $@ -ff$(<:%.png=%.grit)
 	@python scripts/grithack.py $@
+    
+resource_make: @python scripts/portraits.py
 
 $(DEPDIR)/%.d: ;
 .PRECIOUS: $(DEPDIR)/%.d
