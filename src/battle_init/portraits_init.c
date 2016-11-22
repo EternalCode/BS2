@@ -3,9 +3,9 @@
 
 
 // portait positions for portrait player (pp) and portait opponent (po)
-#define pp_x 8
-#define po_x 232
-#define p_y 8 // player and opponent portaits are on same Y position
+#define pp_x 20
+#define po_x 220
+#define p_y 20 // player and opponent portaits are on same Y position
 
 // player portrait 64x64 square OAM, high priority, normal
 const struct OamData portrait_player =  {
