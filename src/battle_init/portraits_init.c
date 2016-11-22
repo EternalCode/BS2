@@ -75,8 +75,8 @@ void draw_portraits(u16 species_p, u16 species_o) {
         };
         
         // commit structs to memory
-        gpu_tile_obj_alloc_tag_and_upload(&face_tiles_player);
-        gpu_tile_obj_alloc_tag_and_upload(&face_tiles_opponent);
+        gpu_tile_obj_decompress_alloc_tag_and_upload(&face_tiles_player);
+        gpu_tile_obj_decompress_alloc_tag_and_upload(&face_tiles_opponent);
         gpu_pal_obj_alloc_tag_and_apply(&face_pal_player);
         gpu_pal_obj_alloc_tag_and_apply(&face_pal_opponent);
         
