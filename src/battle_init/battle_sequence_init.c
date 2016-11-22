@@ -92,7 +92,7 @@ void battle_bg() {
     {
     
         extern void draw_portraits(u16, u16);
-        draw_portraits(0, 1);
+        draw_portraits(rand() % 590, rand() % 590);
         super.multi_purpose_state_tracker++;
         break;
         
