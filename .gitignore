@@ -6,3 +6,5 @@ roms
 generated
 make.exe.stackdump
 test.sh
+images/portraits/*.png
+images/portraits/*.grit
