@@ -14,7 +14,6 @@ void c2_battle() {
     objc_exec();
     process_palfade();
     task_exec();
-
 }
 
 
