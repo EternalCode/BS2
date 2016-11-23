@@ -22,7 +22,7 @@ void battler_make(u16 species, u8 level, u8 side) {
     memset((void*)this_pkmn, 0, sizeof(struct battler));
     
     // fill base stats
-    struct PokemonBaseStat species_stats = pokemon_base_stats[species];
+    struct PokemonBaseStat species_stats = pokemon_base_stats[species+ 1];
     
     // hp
     this_pkmn->total_hp = ((species_stats.hp) >> 3) * level;

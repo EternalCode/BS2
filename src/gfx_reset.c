@@ -9,7 +9,7 @@ void vblank_cb_spq() {
 
 
 void c2_battle() {
-	tilemaps_sync();
+	//tilemaps_sync();
     obj_sync_superstate();
     objc_exec();
     process_palfade();
@@ -44,6 +44,10 @@ void reset_bg_settings() {
     bgid_mod_y_offset(2, 0, 0);
 	bgid_mod_x_offset(3, 0, 0);
     bgid_mod_y_offset(3, 0, 0);
+    gpu_sync_bg_hide(0);
+    gpu_sync_bg_hide(1);
+    gpu_sync_bg_hide(2);
+    gpu_sync_bg_hide(3);
 }
 
 void reset_boxes() {
@@ -68,6 +72,4 @@ void setup() {
 	tasks_init();
 	// textboxes
 	reset_boxes();
-    vblank_handler_set(vblank_cb_spq);
-    set_callback2(c2_battle);
 }
