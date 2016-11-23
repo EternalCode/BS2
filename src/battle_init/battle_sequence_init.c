@@ -3,18 +3,17 @@
 #include "../../generated/images/sky.h"
 
 
-
 void init_battle_elements() {
     extern void setup(void);
-    extern void c1_battle_bg_load(void);
+    extern void c1_battle_gfx_load(void);
     setup();
     super.multi_purpose_state_tracker = 0;
     vblank_handler_set((SuperCallback)0x8046FC1);
-    set_callback1((SuperCallback)c1_battle_bg_load);
+    set_callback1((SuperCallback)c1_battle_gfx_load);
 }
 
 
-void c1_battle_bg_load() {
+void c1_battle_gfx_load() {
 
     u8* op = (u8*)0x20370BA;
     u8* p = (u8*)0x20370BC;
@@ -72,38 +71,38 @@ void c1_battle_bg_load() {
         // TODO : Make this not hard coded.
         void *char_base = (void *)0x6000000 + (0x4000 * 0);
         void *map_base = (void *)0x6000000 + (0xF800 - (0x800 * 0));
+        lz77UnCompVram((void *)skyTiles, char_base + 0x8000);
+        lz77UnCompVram((void *)skyMap, map_base -(0x800 * 2));    
         lz77UnCompVram((void *)BF_GrassTiles, char_base);
-        lz77UnCompVram((void *)BF_GrassMap, map_base);
-        gpu_pal_apply((void *)BF_GrassPal, 0, 64);
-        
-        char_base += 0x8000;
-        map_base -= (0x800 * 2);
-        lz77UnCompVram((void *)skyTiles, char_base);
-        lz77UnCompVram((void *)skyMap, map_base);
-        gpu_pal_apply((void *)skyPal, 16 * 3, 64);  
-
-        bgid_mark_for_sync(0);
-        bgid_mark_for_sync(2);
-        bgid_mark_for_sync(3);
-        gpu_sync_bg_show(0);
-        gpu_sync_bg_show(2);
-        gpu_sync_bg_show(3);
-        
-        super.multi_purpose_state_tracker++;
+        lz77UnCompVram((void *)BF_GrassMap, map_base);   
+        gpu_pal_apply((void *)skyPal, 16 * 3, 64);
+        gpu_pal_apply((void *)BF_GrassPal, 0, 64); 
+            pal_fill_black();
+        super.multi_purpose_state_tracker = 4;
         break;
     }
     case 2:
     {
-    
+        super.multi_purpose_state_tracker = 4;
+        break;
+    }
+    case 3:
+    {
+        //wait state
+        break;
+    }
+    case 4:
+    {
         extern void draw_portraits(u16, u16);
-        *p = rand() % 163;
-        *op = rand() % 163;
+        //*p = rand() % 163;
+        *p = 0;
+        *op = 0;//rand() % 163;
         draw_portraits(*p, *op);
         super.multi_purpose_state_tracker++;
         break;
         
     }
-    case 3:
+    case 5:
     {
         // generate battler
         extern void battler_make(u16, u8, u8);
@@ -122,18 +121,39 @@ void c1_battle_bg_load() {
         drawbar(0);
         drawbar(1);
         super.multi_purpose_state_tracker++;
+        break;
         
     }
-    case 4:
+    case 6:
     {
-        //break;
+        extern void init_battler(u16, u8);
+        init_battler(0, 0);
+        init_battler(0, 1);
+        super.multi_purpose_state_tracker++;
+        break;
     }
     default:
-        REG_BG2VOFS = 0;
-        bgid_mod_x_offset(2, 60, 1);
+        bgid_mark_for_sync(2);
+        bgid_mark_for_sync(0);
+        bgid_mark_for_sync(3);
+        gpu_sync_bg_show(2);
+        gpu_sync_bg_show(0);
+        gpu_sync_bg_show(3);
+        extern void vblank_cb_spq(void);
+        extern void c2_battle(void);
+        extern void battle_handler(void);
+        vblank_handler_set(vblank_cb_spq);
+        set_callback2(c2_battle);
+        set_callback1(battle_handler);
         break;
     };
     return;
 }
 
+void battle_handler() {
+    REG_BG2VOFS = 0;
+    bgid_mod_x_offset(2, 60, 1);
+    extern void process_input(u16);
+    process_input(super.buttons_held | super.buttons_new);
+}
 
