@@ -6,14 +6,18 @@
 
 void init_battle_elements() {
     extern void setup(void);
-    extern void battle_bg(void);
+    extern void c1_battle_bg_load(void);
     setup();
     super.multi_purpose_state_tracker = 0;
     vblank_handler_set((SuperCallback)0x8046FC1);
-    set_callback1((SuperCallback)battle_bg);
+    set_callback1((SuperCallback)c1_battle_bg_load);
 }
 
-void battle_bg() {
+
+void c1_battle_bg_load() {
+
+    u8* op = (u8*)0x20370BA;
+    u8* p = (u8*)0x20370BC;
     switch (super.multi_purpose_state_tracker) {
     case 0:
     {
@@ -92,10 +96,37 @@ void battle_bg() {
     {
     
         extern void draw_portraits(u16, u16);
-        draw_portraits(rand() % 590, rand() % 590);
+        *p = rand() % 163;
+        *op = rand() % 163;
+        draw_portraits(*p, *op);
         super.multi_purpose_state_tracker++;
         break;
         
+    }
+    case 3:
+    {
+        // generate battler
+        extern void battler_make(u16, u8, u8);
+        battler_make (*p, 20, 0);
+        battler_make (*op, 20, 1);
+        
+        // draw level font
+        extern void draw_name(u8);
+        draw_name(1);
+        draw_name(0);
+        
+        // draw health
+        extern void hpbars_cleaninit(u8);
+        extern void drawbar(u8);
+        hpbars_cleaninit(0);
+        drawbar(0);
+        drawbar(1);
+        super.multi_purpose_state_tracker++;
+        
+    }
+    case 4:
+    {
+        //break;
     }
     default:
         REG_BG2VOFS = 0;
@@ -104,3 +135,5 @@ void battle_bg() {
     };
     return;
 }
+
+
