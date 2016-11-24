@@ -116,10 +116,12 @@ void c1_battle_gfx_load() {
         
         // draw health
         extern void hpbars_cleaninit(u8);
-        extern void drawbar(u8);
+        extern void drawbar(u8, u8);
         hpbars_cleaninit(0);
-        drawbar(0);
-        drawbar(1);
+        
+        extern u8 calc_hp(u8);
+        drawbar(calc_hp(0), 0);
+        drawbar(calc_hp(1), 1);
         super.multi_purpose_state_tracker++;
         break;
         
