@@ -74,10 +74,7 @@ u8 calc_hp(u8 side) {
 }
 
 
-void drawbar(u8 side) {
-    u8 pixel_count = calc_hp(side);
-    u16* var = (u16*)(0x203C0D0);
-    *var = pixel_count;
+void drawbar(u8 pixel_count, u8 side) {
     u8 bar[8] = {8, 8, 8, 8, 8, 8, 8, 8};
     u8 i = 0;
     while (pixel_count >= 8) {
@@ -159,4 +156,26 @@ void drawbar(u8 side) {
         memcpy(dst, src, 32);
     }
     
+}
+
+void task_hp_deplete (u8 tid) {
+    struct Task* t = &tasks[tid];
+    if (t->priv[3] < (t->priv[1] - t->priv[2])) {
+        drawbar(t->priv[0], t->priv[1] + t->priv[3]);
+    }
+    t->priv[3]++;
+    return;
+}
+
+
+void dmg_bar(u8 side, u8 start, u8 to) {
+    u8 tid = task_add(dmg_bar, 0x1);
+    tasks[tid].priv[0] = side;
+    tasks[tid].priv[1] = start;
+    tasks[tid].priv[2] = to;
+    tasks[tid].priv[3] = 0;
+    u8 i;
+    for (i = 0; i < (start - to); i ++) {
+        drawbar(side, start - i);
+    }
 }
