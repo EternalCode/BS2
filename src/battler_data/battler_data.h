@@ -3,6 +3,7 @@
 
 #include <pokeagb/pokeagb.h>
 
+
 struct movement_frames {
     u8 frame_count;
     u8 loop_time;
@@ -10,11 +11,13 @@ struct movement_frames {
     u8 padding;
 };
 
+
 struct b_attacks {
     u8 id;
     u8 time;
     u8 frame_count;
 };
+
 
 struct battler_base {
     struct movement_frames up;
@@ -25,16 +28,34 @@ struct battler_base {
     u16 species;
 };
 
+
 static const struct battler_base p_base[1] = {
     { {NULL}, {NULL}, {NULL}, {NULL}, 0, 1, 2, 3, 4, 5, 6, 7, 1},
 };
 
 
+enum HitboxSize {
+    HITBOX_SMALL,
+    HITBOX_MEDIUM,
+    HITBOX_LARGE,
+};
+
+
 struct battler {
+    // Positional vectors
+    u8 map_x;
+    u8 map_y;
+    u8 hit_box_size;
+    
+    // tied object logging
+    u8 obj_id;
+    u8 hpbarids[8];
+    
+    // Battler status related
     u16 is_status : 1;
     u16 status_id : 4; // par, psn, slp, brn
     u16 freeze_state : 1; // middle of animation
-    u16 padding : 6;
+    u16 padding : 10;
     u16 current_hp;
     u16 total_hp;
     u8 level;
@@ -45,9 +66,15 @@ struct battler {
     u16 spd;    
     struct b_attacks attack[4];
     u16 species;
+    
+    // unneeded for now, but perhaps useful later
     pchar name[15];
-    u8 obj_id;
-    u8 hpbarids[8];
+
+};
+
+
+static const enum HitboxSize battler_sizes[] = {
+    HITBOX_SMALL,
 };
 
 
