@@ -1,29 +1,61 @@
 #include <pokeagb/pokeagb.h>
 #include "../battler_data/battler_data.h"
 #include "../../generated/images/battlers_frames/001.h"
+#include "../map_data/map_movement_permissions.h"
+#include "../battle_state.h"
 
-#define MAX_UP 0x4E
-#define MAX_DOWN 0x94
-#define MAX_LEFT 0xC
-#define MAX_RIGHT 0xE4
+#define ARRAY_COORDX(x) ((x - 10) / 6)
+#define ARRAY_COORDY(y) ((y + 6) / 6)
 
 static struct battler* opponent = (struct battler*)0x202024C;
 static struct battler* player = (struct battler*)0x2024284;
 
-void map_boundary_check(struct Object* obj, u16 x, u16 y, s16 x_displace, s16 y_displace) {
-    // max_down = 0x94
-    // max_up = 0x4E
-    // max left = 0xC
-    // max right = 0xE4
+void map_boundary_check(struct Object* obj, u16 x, u16 y, s16 x_displace, s16 y_displace) {  
     u16 result_x = x + x_displace;
-    u16 result_y = y + y_displace;
-    result_x = ((x + x_displace) > (MAX_RIGHT)) ? MAX_RIGHT : result_x;
-    result_x = ((x + x_displace) < (MAX_LEFT)) ? MAX_LEFT : result_x;
-    result_y = ((y + y_displace) > (MAX_DOWN)) ? MAX_DOWN : result_y;
-    result_y = ((y + y_displace) < (MAX_UP)) ? MAX_UP : result_y;
-
-    obj->pos1.x = result_x;
-    obj->pos1.y = result_y;
+    u16 result_y = y + y_displace; 
+    
+    u16 x_coord = ARRAY_COORDX(result_x);
+    u16 y_coord = ARRAY_COORDY(result_y);
+    
+    // if obj->priv[4], ignore array value 2
+    // else ignore array value 3
+    u8 ignored_unit = 3 - (1 * obj->priv[4]);
+    
+    if ((!world_state->map->map_2d[y_coord][ARRAY_COORDX(x)]) ||
+        (world_state->map->map_2d[y_coord][ARRAY_COORDX(x)] == ignored_unit)) {
+        // the Y coordinate displacement is applicable
+        obj->pos1.y = result_y;
+    }
+    
+    if ((!world_state->map->map_2d[ARRAY_COORDY(y)][x_coord]) ||
+        (world_state->map->map_2d[ARRAY_COORDY(y)][x_coord] == ignored_unit)) {
+        // the X coordinate displacement is applicable
+        obj->pos1.x = result_x;
+    }
+    
+    // Object location logging
+    if (obj->priv[4]) {
+        // erase old world state
+        world_state->map->map_2d[player->map_y][player->map_x] = 0;
+        
+        //write new state player locally
+        player->map_x = ARRAY_COORDX(obj->pos1.x);
+        player->map_y = ARRAY_COORDY(obj->pos1.y);
+        
+        // Player in world state update
+        world_state->map->map_2d[ARRAY_COORDY(obj->pos1.y)][ARRAY_COORDX(obj->pos1.x)] = 2;
+    } else {
+        // erase old world state
+        world_state->map->map_2d[opponent->map_y][opponent->map_x] = 0;
+        
+        //write new state opp locally
+        opponent->map_x = ARRAY_COORDX(obj->pos1.x);
+        opponent->map_y = ARRAY_COORDY(obj->pos1.y);
+        
+        // Opp in world state update
+        world_state->map->map_2d[ARRAY_COORDY(obj->pos1.y)][ARRAY_COORDX(obj->pos1.x)] = 3; // Opp in world state        
+    } 
+    
 }
 
 
@@ -96,24 +128,24 @@ void cb_battler_DR(struct Object* obj) {
 
 // left
 void cb_battler_L(struct Object* obj) {
-    animation_frame_handler(obj, 3, 6, 5, 1, -2, 0);
+    animation_frame_handler(obj, 3, 6, 5, 1, -4, 0);
 }
 
 // right
 void cb_battler_R(struct Object* obj) {
-    animation_frame_handler(obj, 3, 6, 5, 1, 2, 0);
+    animation_frame_handler(obj, 3, 6, 5, 1, 4, 0);
 }
 
 // up
 void cb_battler_U(struct Object* obj) {
     // based on side facing, use other frame
-    animation_frame_handler(obj, 9, 12, 5, 1, 0, -2);
+    animation_frame_handler(obj, 9, 12, 5, 1, 0, -4);
 }
 
 // down
 void cb_battler_D(struct Object* obj) {
     // based on side facing, use other frame
-    animation_frame_handler(obj, 6, 9, 5, 1, 0, 2);
+    animation_frame_handler(obj, 6, 9, 5, 1, 0, 4);
 }
 
 
