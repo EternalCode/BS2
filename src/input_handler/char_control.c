@@ -18,12 +18,11 @@ extern void cb_battler_idle_B(struct Object*);
 
 void process_input(u16 button_press) {
     struct Object* obj = &objects[player->obj_id];
+    obj->priv[4] = 1;
     /*if (obj->priv[3]) {
         return;
     }*/
-    u8* var = (u8*)0x20370B8;
-    *var = obj->pos1.x;
-    *(var+2) = obj->pos1.y;
+
     // process attacks -> priority over movements
     /* TODO */
     
