@@ -1,7 +1,10 @@
 #include <pokeagb/pokeagb.h>
 #include "../../generated/images/BF_Grass.h"
 #include "../../generated/images/sky.h"
+#include "../map_data/map_movement_permissions.h"
+#include "../battle_state.h"
 
+//static struct engine_state* world_state = (struct engine_state*)0x02023BE4;
 
 void init_battle_elements() {
     extern void setup(void);
@@ -77,7 +80,7 @@ void c1_battle_gfx_load() {
         lz77UnCompVram((void *)BF_GrassMap, map_base);   
         gpu_pal_apply((void *)skyPal, 16 * 3, 64);
         gpu_pal_apply((void *)BF_GrassPal, 0, 64); 
-            pal_fill_black();
+        pal_fill_black();
         super.multi_purpose_state_tracker = 4;
         break;
     }
@@ -133,6 +136,16 @@ void c1_battle_gfx_load() {
         init_battler(0, 1);
         super.multi_purpose_state_tracker++;
         break;
+    }
+    case 7:
+    {
+        // initialize map array
+        u8* map_data = (u8*)malloc_and_clear( sizeof(map_grass));
+        memcpy((void*)map_data, (void*)&map_grass, sizeof(map_grass));
+        world_state->map = (union map_state_u*)map_data;
+        super.multi_purpose_state_tracker++;
+        break;
+        
     }
     default:
         bgid_mark_for_sync(2);
