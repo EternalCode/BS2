@@ -169,7 +169,7 @@ void task_hp_deplete (u8 tid) {
 
 
 void dmg_bar(u8 side, u8 start, u8 to) {
-    u8 tid = task_add(dmg_bar, 0x1);
+    u8 tid = task_add(task_hp_deplete, 0x1);
     tasks[tid].priv[0] = side;
     tasks[tid].priv[1] = start;
     tasks[tid].priv[2] = to;
