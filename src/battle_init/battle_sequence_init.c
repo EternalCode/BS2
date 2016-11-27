@@ -160,6 +160,10 @@ void c1_battle_gfx_load() {
         vblank_handler_set(vblank_cb_spq);
         set_callback2(c2_battle);
         set_callback1(battle_handler);
+        extern void player_execute_state(void);
+        extern void opponent_execute_state(void);
+        world_state->FSM_Player_state = player_execute_state;
+        world_state->FSM_AI_state = opponent_execute_state;
         break;
     };
     return;
@@ -168,7 +172,9 @@ void c1_battle_gfx_load() {
 void battle_handler() {
     REG_BG2VOFS = 0;
     bgid_mod_x_offset(2, 60, 1);
-    extern void process_input(u16);
-    process_input(super.buttons_held | super.buttons_new);
+    
+    // execute player state
+    world_state->FSM_AI_state();
+    world_state->FSM_Player_state();
 }
 
