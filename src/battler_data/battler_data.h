@@ -2,6 +2,7 @@
 #define BATTLER_DATAH_H_
 
 #include <pokeagb/pokeagb.h>
+#include "../battle_state.h"
 
 
 struct movement_frames {
@@ -11,28 +12,28 @@ struct movement_frames {
     u8 padding;
 };
 
-
-struct b_attacks {
-    u8 id;
-    u8 time;
-    u8 frame_count;
-};
-
-
 struct battler_base {
-    struct movement_frames up;
-    struct movement_frames down;
-    struct movement_frames side;
-    struct movement_frames jump; // maybe
-    u8 attacks_learnable[8]; // max 8
-    u16 species;
+    void* image_data;
+    void* palette_data;
+    ObjectCallback idle_F;
+    ObjectCallback idle_B;
+    ObjectCallback walk_U;
+    ObjectCallback walk_D;
+    ObjectCallback walk_L;
+    ObjectCallback walk_R;
+    ObjectCallback walk_UL;
+    ObjectCallback walk_UR;
+    ObjectCallback walk_DL;
+    ObjectCallback walk_DR;
+    ObjectCallback atk[4];
+    u8 hitbox_size;
+    
 };
 
-
-static const struct battler_base p_base[1] = {
-    { {NULL}, {NULL}, {NULL}, {NULL}, 0, 1, 2, 3, 4, 5, 6, 7, 1},
+enum BattlerFacingDir {
+    DOWN,
+    UP,
 };
-
 
 enum HitboxSize {
     HITBOX_SMALL,
@@ -41,21 +42,31 @@ enum HitboxSize {
 };
 
 
+enum BattlerStates {
+    BATTLER_MOVEMENT,
+    BATTLER_ATTACKING,
+    BATTLER_DAMAGED,
+    BATTLER_FAINT,
+};
+
 struct battler {
     // Positional vectors
     u8 map_x;
     u8 map_y;
     u8 hit_box_size;
+    enum BattlerFacingDir dir;
     
     // tied object logging
     u8 obj_id;
     u8 hpbarids[8];
     
+    // game callback controller
+    enum BattlerStates bstate;
+    
+    // Move obj ids
+    u8 objid_move;
+    
     // Battler status related
-    u16 is_status : 1;
-    u16 status_id : 4; // par, psn, slp, brn
-    u16 freeze_state : 1; // middle of animation
-    u16 padding : 10;
     u16 current_hp;
     u16 total_hp;
     u8 level;
@@ -64,7 +75,6 @@ struct battler {
     u16 def;
     u16 spdef;
     u16 spd;    
-    struct b_attacks attack[4];
     u16 species;
     
     // unneeded for now, but perhaps useful later
@@ -245,5 +255,7 @@ static const pchar battler_names[169][15] = {
     _"Mew",   
 };
 
+static struct battler* opponent = (struct battler*)0x202024C;
+static struct battler* player = (struct battler*)0x2024284;
 
 #endif /* BATTLER_DATAH_H_ */
