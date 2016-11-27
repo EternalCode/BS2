@@ -45,6 +45,8 @@ const struct OamData portrait_opponent =  {
                                         .affine_param = 0
 };
 
+static const struct Frame (**nullframe)[] = (const struct Frame (**)[])0x8231CF0;
+static const struct RotscaleFrame (**nullrsf)[] = (const struct RotscaleFrame (**)[])0x8231CFC;
 
 void draw_portraits(u16 species_p, u16 species_o) {
         u16 player_species = species_p;
@@ -63,15 +65,11 @@ void draw_portraits(u16 species_p, u16 species_o) {
         // obj templates make
         struct Template face_temp_player = {
                                         player_species, player_species, &portrait_player, 
-                                        (const struct Frame**)0x8231CF0, 0x0,
-                                        (const struct RotscaleFrame**)0x8231CFC,
-                                        (ObjectCallback)0x800760D
+                                        nullframe, 0x0, nullrsf, (ObjectCallback)0x800760D
         };
         struct Template face_temp_opponent = {
                                         opp_species, opp_species, &portrait_opponent, 
-                                        (const struct Frame**)0x8231CF0, 0x0,
-                                        (const struct RotscaleFrame**)0x8231CFC,
-                                        (ObjectCallback)0x800760D
+                                        nullframe, 0x0, nullrsf, (ObjectCallback)0x800760D
         };
         
         // commit structs to memory

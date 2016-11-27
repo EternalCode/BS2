@@ -23,10 +23,8 @@ const struct OamData bar = {
 
 struct SpritePalette hppalette = {(u8*)&hpbarPal, 0x154};
 
-static struct battler* opponent = (struct battler*)0x202024C;
-static struct battler* player = (struct battler*)0x2024284;
-static const struct Frame** nullframe = (const struct Frame**)0x8231CF0;
-static const struct RotscaleFrame** nullrsf = (const struct RotscaleFrame**)0x8231CFC;
+static const struct Frame (**nullframe)[] = (const struct Frame (**)[])0x8231CF0;
+static const struct RotscaleFrame (**nullrsf)[] = (const struct RotscaleFrame (**)[])0x8231CFC;
 
 void hpbars_cleaninit(u8 slot) {
     u8 i;

@@ -5,10 +5,8 @@
 #define op_name_pos 130
 #define player_name 46
 
-static struct battler* opponent = (struct battler*)0x202024C;
-static struct battler* player = (struct battler*)0x2024284;
-static const struct Frame** nullframe = (const struct Frame**)0x8231CF0;
-static const struct RotscaleFrame** nullrsf = (const struct RotscaleFrame**)0x8231CFC;
+static const struct Frame (**nullframe)[] = (const struct Frame (**)[])0x8231CF0;
+static const struct RotscaleFrame (**nullrsf)[] = (const struct RotscaleFrame (**)[])0x8231CFC;
 
 const struct OamData font_oam = {
                                 .y = 0,
@@ -43,6 +41,8 @@ void oam_letter_make(pchar letter, u16 tile) {
     gpu_pal_obj_alloc_tag_and_apply(&fontpalette);
     template_instanciate_forward_search(&font_temp, tile, 17, 0x0); 
 }
+
+/* TODO: Use less OAMs */
 
 void draw_name(u8 side) {
     u8 x_pos = 0;
