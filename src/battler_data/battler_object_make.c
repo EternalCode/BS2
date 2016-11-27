@@ -1,6 +1,6 @@
 #include <pokeagb/pokeagb.h>
-#include "../../generated/images/battlers_frames/001.h"
 #include "../battler_data/battler_data.h"
+#include "../battler_data/pokemon_base.h"
 
 /*
  *
@@ -23,25 +23,23 @@ const struct OamData small = {
                                 .matrix_num = 0,
                                 .size = 2, //32 x 32
                                 .tile_num = 0,
-                                .priority = 0,
+                                .priority = 1,
                                 .palette_num = 0,
                                 .affine_param = 0
 };
 
-static const struct Frame** nullframe = (const struct Frame**)0x8231CF0;
-static const struct RotscaleFrame** nullrsf = (const struct RotscaleFrame**)0x8231CFC;
-static struct battler* opponent = (struct battler*)0x202024C;
-static struct battler* player = (struct battler*)0x2024284;
 
+static const struct Frame (**nullframe)[] = (const struct Frame (**)[])0x8231CF0;
+static const struct RotscaleFrame (**nullrsf)[] = (const struct RotscaleFrame (**)[])0x8231CFC;
 
 void init_battler(u16 species, u8 side) {
-    extern void cb_battler_idle_F(struct Object*);
-    struct SpritePalette battlerpalette = {&_01Pal, (0x1000 + species)};
-    struct SpriteTiles battlersprite = {&_01Tiles[0], 512, ((0x1000 * (side + 1)) + species)};
+    extern void cb_battler_idle_B(struct Object*);
+    struct SpritePalette battlerpalette = {p_base[species].palette_data, (0x1000 + species)};
+    struct SpriteTiles battlersprite = {&p_base[species].image_data, 512, ((0x1000 * (side + 1)) + species)};
     struct Template battler_temp = {
                                     ((0x1000 * (side + 1)) + species), (0x1000 + species),
                                     &small, nullframe, &battlersprite, nullrsf,
-                                    (ObjectCallback)cb_battler_idle_F
+                                    (ObjectCallback)p_base[species].idle_F
     };
     gpu_tile_obj_alloc_tag_and_upload(&battlersprite);
     gpu_pal_obj_alloc_tag_and_apply(&battlerpalette);
