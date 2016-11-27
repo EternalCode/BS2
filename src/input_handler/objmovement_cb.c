@@ -1,15 +1,13 @@
 #include <pokeagb/pokeagb.h>
 #include "../battler_data/battler_data.h"
-#include "../../generated/images/battlers_frames/001.h"
 #include "../map_data/map_movement_permissions.h"
 #include "../battle_state.h"
+#include "../battler_data/pokemon_base.h"
 
 #define ARRAY_COORDX(x) ((x - 10) / 6)
 #define ARRAY_COORDY(y) ((y + 6) / 6)
 
-static struct battler* opponent = (struct battler*)0x202024C;
-static struct battler* player = (struct battler*)0x2024284;
-
+/* This is only for player objects to check map movability permissions */
 void map_boundary_check(struct Object* obj, u16 x, u16 y, s16 x_displace, s16 y_displace) {  
     u16 result_x = x + x_displace;
     u16 result_y = y + y_displace; 
@@ -66,16 +64,31 @@ void map_boundary_check(struct Object* obj, u16 x, u16 y, s16 x_displace, s16 y_
  * Priv[1] = Frame to show
  * Priv[2] = Animation looped flag
  * Priv[3] = Is active flag
+ * Priv[4] = Is player
+ * Priv[5] = Shaking delay
+ * Priv[6] = Shaking dir
+ * Priv[7] = frame_id
  *
  */
- 
 
-void animation_frame_handler(struct Object* obj, u8 frame_start, u8 frame_end, u8 frame_duration,
-                            u8 looptimes, s8 x_displace, s8 y_displace) {
+void animation_sprite_shake(struct Object* obj, u8 amount, u8 delay) {
+    obj->priv[5]++;
+    if (obj->priv[5] < delay) {
+        return;
+    }
+    obj->priv[5] = 0;
+    obj->pos1.x += (obj->priv[6]) ? 0 : amount;
+    obj->pos1.x -= (obj->priv[6]) ? amount : 0;
+    obj->priv[6] = !obj->priv[6];
+}
+
+void animation_frame_handler(struct Object* obj, u8 frame_start, u8 frame_end, u16 frame_duration[],
+                                    u8 looptimes, s8 x_displace, s8 y_displace, u8 idle_state) {
     // animation delay
     obj->priv[0]++;
-    if (obj->priv[0] > frame_duration) {
+    if (obj->priv[0] > frame_duration[obj->priv[7]]) {
         obj->priv[0] = 0;
+        obj->priv[7]++;
     } else {
         return;
     }
@@ -87,13 +100,25 @@ void animation_frame_handler(struct Object* obj, u8 frame_start, u8 frame_end, u
         // animation ended
         extern void cb_battler_idle_F(struct Object*);
         extern void cb_battler_idle_B(struct Object*);
-        obj->callback = cb_battler_idle_F;
-        obj->priv[3] = 0;
-        obj->priv[0] = 19;
+        if (idle_state) {
+            obj->callback = (obj->priv[4]) ? p_base[player->species].idle_B : p_base[opponent->species].idle_B;
+        } else {
+            obj->callback = (obj->priv[4]) ? p_base[player->species].idle_F : p_base[opponent->species].idle_F;
+        }
+        if (obj->priv[4]) {
+            player->bstate = BATTLER_MOVEMENT;
+        } else {
+            opponent->bstate = BATTLER_MOVEMENT;
+        }
+        obj->priv[0] = 0xFF;
+        obj->priv[7] = 0;
+         // jumps to new frame immediately
     } else {
         // animation starting
         void* dst = (void*)((obj->final_oam.tile_num * 32) + SPRITE_RAM);
-        void* src = (void*)&_01Tiles[(32 * 4 * 4 * frame)];
+        void* src = (obj->priv[4]) ? p_base[player->species].image_data : p_base[opponent->species].image_data;
+        
+        src += (32 * 4 * 4 * frame);
         memcpy(dst, src, (32 * 4 * 4));
         map_boundary_check(obj, obj->pos1.x, obj->pos1.y, x_displace, y_displace);
         obj->priv[2]++;            
@@ -101,52 +126,49 @@ void animation_frame_handler(struct Object* obj, u8 frame_start, u8 frame_end, u
 }
 
 
-// Idle state facing forward
-void cb_battler_idle_F(struct Object* obj) {
-    animation_frame_handler(obj, 0, 3, 20, 0xFF, 0, 0); 
+u8 animation_frame_handler_move(struct Object* obj, u8 frame_start, u8 frame_end,
+                                u16 frame_duration[], s8 x_displace, s8 y_displace,
+                                void* src, u8 loop_times) {
+    // animation delay
+    obj->priv[0]++;
+    if (obj->priv[0] > frame_duration[obj->priv[1] - frame_start]) {
+        obj->priv[0] = 0;
+    } else {
+        return 0;
+    }
+    // check which frame to execute next
+    obj->priv[1] = (obj->priv[1] < frame_start) ? frame_start : obj->priv[1];
+    obj->priv[1] = ((obj->priv[1] >= frame_end) ? (frame_start) : (obj->priv[1] + 1));
+    u8 frame = obj->priv[1];
+    if (frame == frame_start) {
+        obj->priv[4]++;
+    }
+    if (obj->priv[4] > loop_times) {
+        // animation ended
+        return 1;
+    } else {
+        // animation starting
+        void* dst = (void*)((obj->final_oam.tile_num * 32) + SPRITE_RAM);        
+        src += (32 * 4 * 4 * frame);
+        memcpy(dst, src, (32 * 4 * 4));
+        obj->pos1.x += x_displace;
+        obj->pos1.y += y_displace;
+        return 0;
+    }   
 }
 
-// up_left
-void cb_battler_UL(struct Object* obj) {
-    animation_frame_handler(obj, 15, 18, 5, 1, -2, -2);
+void obj_attack_free(struct Object* obj) {
+    switch (obj->priv[3]) {
+        case 1:
+            player->objid_move = 0;
+            break;
+        default:
+            opponent->objid_move = 0;
+    };
+    obj_free(obj);
+    return;
 }
 
-// up_right
-void cb_battler_UR(struct Object* obj) {
-    animation_frame_handler(obj, 15, 18, 5, 1, 2, -2);
-}
-
-// down_left
-void cb_battler_DL(struct Object* obj) {
-    animation_frame_handler(obj, 12, 15, 5, 1, -2, 2);
-}
-
-// down_right
-void cb_battler_DR(struct Object* obj) {
-    animation_frame_handler(obj, 12, 15, 5, 1, 2, 2);
-}
-
-// left
-void cb_battler_L(struct Object* obj) {
-    animation_frame_handler(obj, 3, 6, 5, 1, -4, 0);
-}
-
-// right
-void cb_battler_R(struct Object* obj) {
-    animation_frame_handler(obj, 3, 6, 5, 1, 4, 0);
-}
-
-// up
-void cb_battler_U(struct Object* obj) {
-    // based on side facing, use other frame
-    animation_frame_handler(obj, 9, 12, 5, 1, 0, -4);
-}
-
-// down
-void cb_battler_D(struct Object* obj) {
-    // based on side facing, use other frame
-    animation_frame_handler(obj, 6, 9, 5, 1, 0, 4);
-}
 
 
 
