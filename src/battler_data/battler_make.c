@@ -1,8 +1,6 @@
 #include <pokeagb/pokeagb.h>
 #include "battler_data.h"
 
-static struct battler* opponent = (struct battler*)0x202024C;
-static struct battler* player = (struct battler*)0x2024284;
 
 void battler_make(u16 species, u8 level, u8 side) {
     struct battler* this_pkmn;
@@ -43,7 +41,9 @@ void battler_make(u16 species, u8 level, u8 side) {
     this_pkmn->species = species;    
     this_pkmn->level = level;
     
-    // pick attacks
+    this_pkmn->bstate = BATTLER_MOVEMENT;
+    
+    this_pkmn->objid_move = 0x3F;
     
 }
 
