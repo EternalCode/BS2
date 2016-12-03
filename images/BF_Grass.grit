@@ -1,1 +1,1 @@
--fh -m -mR4 -mzl -mu8 -pe32 -g -gB8 -gzl -gu8 -ah256 -aw256
+-fh -m -mzl -mLa -mu8 -g -gzl -gB8 -gu8 -ah512 -aw512
