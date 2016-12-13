@@ -3,6 +3,7 @@
 
 #include <pokeagb/pokeagb.h>
 #include "../generated/images/battlers_frames/001.h"
+#include "../generated/images/battlers_frames/002.h"
 
 
 #endif /* BATTLE_FRAMES_DATA_H */

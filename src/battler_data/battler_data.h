@@ -2,59 +2,80 @@
 #define BATTLER_DATAH_H_
 
 #include <pokeagb/pokeagb.h>
-#include "../battle_state.h"
 
-
-struct movement_frames {
-    u8 frame_count;
-    u8 loop_time;
-    u8 displacement;
-    u8 padding;
-};
 
 struct battler_base {
     void* image_data;
     void* palette_data;
     ObjectCallback idle_F;
     ObjectCallback idle_B;
-    ObjectCallback walk_U;
-    ObjectCallback walk_D;
+    ObjectCallback jump_U;
     ObjectCallback walk_L;
     ObjectCallback walk_R;
-    ObjectCallback walk_UL;
-    ObjectCallback walk_UR;
-    ObjectCallback walk_DL;
-    ObjectCallback walk_DR;
+    ObjectCallback falling_L;
+    ObjectCallback falling_R;
     ObjectCallback atk[4];
-    u8 hitbox_size;
+    ObjectCallback protect;
+    ObjectCallback burst_move;
+    u8 hitbox_x;
+    u8 hitbox_y;
+    s8 weight;
     
 };
 
 enum BattlerFacingDir {
-    DOWN,
-    UP,
+    FACING_UP = (1 << 0),
+    FACING_LEFT = (1 << 1),
+    FACING_RIGHT = (1 << 2),
+    FACING_ONLY_UP = (1 << 3),
 };
-
-enum HitboxSize {
-    HITBOX_SMALL,
-    HITBOX_MEDIUM,
-    HITBOX_LARGE,
-};
-
 
 enum BattlerStates {
     BATTLER_MOVEMENT,
+    BATTLER_UNCONTROLLABLE_JUMPING,
     BATTLER_ATTACKING,
     BATTLER_DAMAGED,
     BATTLER_FAINT,
+    BATTLER_UTURN,
+    BATTLER_BLOCKING,
 };
 
 struct battler {
-    // Positional vectors
-    u8 map_x;
-    u8 map_y;
-    u8 hit_box_size;
+    // Character hit box
+    u8 hitbox_x;
+    u8 hitbox_y;
+    
+    // Currently facing direction component
     enum BattlerFacingDir dir;
+    enum BattlerFacingDir old_dir;
+   // u8 loop_times;
+   u8 anim_loop;
+    
+    // double jump flag
+    bool has_jumped;
+    
+    // flag toggled when directional jumping    
+    bool apply_dir_to_jump;
+    
+    // flag toggled when melee attack is on frame
+    bool is_meleeing;
+    
+    // flag to stop camera movement -> powering up
+    bool boosting;
+    
+    u8 protect_enable;
+    u8 protect_duration;
+    u8 protect_pp;
+    
+    u8 hitbox_increase_x;
+    u8 hitbox_increase_y;
+    
+    // World gravity physics relatd variables
+    u16 x_delay_time;
+    u16 x_delay_timer;
+    u16 delta_time; // relative to animation start
+    s16 delta_x; // transformation in X direction -> idle state sets to 0
+    s16 delta_y; // transformation in Y axis -> idle state sets to 0
     
     // tied object logging
     u8 obj_id;
@@ -77,20 +98,25 @@ struct battler {
     u16 spd;    
     u16 species;
     
+    // Base stat modifiers
+    union {
+        u16 spatk_boost : 3;
+        u16 atk_boost : 3;
+        u16 spdef_boost : 3;
+        u16 def_boost : 3;
+        u16 spd_boost : 3;
+        u16 padding : 1;
+        u16 all;
+    } boosts;
     // unneeded for now, but perhaps useful later
     pchar name[15];
 
 };
 
 
-static const enum HitboxSize battler_sizes[] = {
-    HITBOX_SMALL,
-};
-
-
 static const pchar battler_names[169][15] = {
-    _"Bulbasaur",
-    _"Ivysaur",
+    _"SCYTHER",
+    _"Golduck",
     _"Venasaur",
     _"Charmander",
     _"Charmeleon",
