@@ -5,16 +5,16 @@ u16 AI_decision_parse(u8 move) {
     u16 input = 0;
     switch (rand() % 12) {
         case 0:
-            //input = KEY_A;
+            input = KEY_A;
             break;  
         case 1:
-            //input = KEY_B;
+            input = KEY_B;
             break;
         case 2:
-            //input = KEY_L;
+            input = KEY_L;
             break;
         case 3:
-            //input = KEY_R;
+            input = KEY_R;
             break;
         case 5:
             input = KEY_UP;
